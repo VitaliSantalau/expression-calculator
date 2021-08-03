@@ -18,23 +18,24 @@ function expressionCalculator(expr) {
   }
 
   function getReversePolishNotation(arr) {
-    let outArr = [];
+    const outArr = [];
     const stack = [];
-    const prioritet = {
-      '/': 2,
-      '*': 2,
-      '+': 3,
-      '-': 3,
+    const priority = {
+      '/': 1,
+      '*': 1,
+      '+': 2,
+      '-': 2,
     }
+
     for(let i = 0; i < arr.length; i++) {
       const isNumber = !Object.is(NaN, Number(arr[i]));
       if(isNumber) outArr.push(arr[i]);
 
-      if(arr[i] === '+' || arr[i] === '-' || arr[i] === '*' || arr[i] === '/') {
+      if(arr[i] in priority) {
         if(stack.length === 0) {
           stack.push(arr[i]);
         } else { 
-          if(prioritet[stack[stack.length-1]] <= prioritet[arr[i]]) {
+          while(priority[stack[stack.length-1]] <= priority[arr[i]]) {
             outArr.push(stack.pop());
           } 
           stack.push(arr[i]);
@@ -50,11 +51,10 @@ function expressionCalculator(expr) {
           }; 
           outArr.push(stack.pop());
         }
-        if(stack[stack.length-1] === '(') {
-          stack.pop();
-          delete arr[i];
-        } 
-      }    
+        // stack[stack.length-1] === '('
+        stack.pop();
+        delete arr[i];
+      }
     }
 
     while(stack.length) {
@@ -63,6 +63,7 @@ function expressionCalculator(expr) {
       }
       outArr.push(stack.pop());
     }
+
     return outArr;
   }
 
@@ -79,21 +80,23 @@ function expressionCalculator(expr) {
     for(let i = 0; i < arr.length; i++) {
       const isNumber = !Object.is(NaN, Number(arr[i]));
       if(isNumber) stack.push(arr[i]);
+
       if(!isNumber) {
         const currentCalculate = operation[arr[i]](Number(stack.pop()), Number(stack.pop()));
+        if(Object.is(Infinity, currentCalculate)) {
+          throw new Error('TypeError: Division by zero.')
+        }
         stack.push(currentCalculate);
       }
     }
-
-    return Number(stack[0]).toFixed(4);
+    return stack.pop();
   }
+  
   const arr = exprToArr(expr);
   const arrReversePolishNotation = getReversePolishNotation(arr);
   return result = toCalculate(arrReversePolishNotation);
 }
 
-console.log(expressionCalculator(" 20 - 57 * 12 - (  58 + 84 * 32 / 27  )"))
-
-// module.exports = {
-//     expressionCalculator
-// }
+module.exports = {
+    expressionCalculator
+}
